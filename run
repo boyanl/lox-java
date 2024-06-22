@@ -1,0 +1,3 @@
+#!/bin/bash
+make build
+java -ea --enable-preview -cp target com.interpreters.lox.Lox "$@"

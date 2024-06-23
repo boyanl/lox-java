@@ -1,8 +1,6 @@
 package com.interpreters.lox;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -27,20 +25,16 @@ public class Lox {
         run(new String(bytes, StandardCharsets.UTF_8));
     }
 
-    private static void runPrompt() throws IOException {
 
-        try (var reader = new BufferedReader(new InputStreamReader(System.in))) {
-            for (;;) {
-                System.out.print("> ");
-                var line = reader.readLine();
-                if (line == null) break;
-                run(line);
-                hadError = false;
-            }
-        }
+    private static void runPrompt() throws IOException {
+        new Terminal(line -> {
+            run(line);
+            hadError = false;
+        }).run();
     }
 
     private static void run(String source) {
+
         var scanner = new Scanner(source);
         var tokens = scanner.scan();
 
@@ -70,6 +64,5 @@ public class Lox {
         System.out.printf("[line=%d] Error%s: %s%n", line, where, error);
         hadError = true;
     }
-
 
 }

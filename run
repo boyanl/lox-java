@@ -1,3 +1,4 @@
 #!/bin/bash
-make build
-java -ea --enable-preview -cp target com.interpreters.lox.Lox "$@"
+#DEBUG_ARGS=-agentlib:jdwp=transport=dt_socket,server=y,address=9000,suspend=n
+make build && java $DEBUG_ARGS -ea --enable-preview -cp "target:lib/*" com.interpreters.lox.Lox "$@"
+

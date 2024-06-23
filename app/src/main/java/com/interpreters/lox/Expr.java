@@ -2,6 +2,7 @@ package com.interpreters.lox;
 
 public sealed interface Expr {
 	interface Visitor<R> {
+		R visit(Ternary expr);
 		R visit(Binary expr);
 		R visit(Grouping expr);
 		R visit(Literal expr);
@@ -9,6 +10,13 @@ public sealed interface Expr {
 	}
 
 	<R> R accept(Visitor<R> visitor);
+
+    record Ternary(Expr condition, Expr first, Expr second) implements Expr {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
 
     record Binary(Expr left, Token operator, Expr right) implements Expr {
         @Override

@@ -25,7 +25,22 @@ public class Parser {
     }
 
     private Expr expression() {
-        return equality();
+        return ternary();
+    }
+
+    private Expr ternary() {
+        var expr = equality();
+
+        if (match(QUESTION_MARK)) {
+            Token op = previous();
+
+            var first = ternary();
+            consume(COLON, "':' expected");
+            var second = ternary();
+            return new Expr.Ternary(expr, first, second);
+        }
+
+        return expr;
     }
 
     private Expr equality() {

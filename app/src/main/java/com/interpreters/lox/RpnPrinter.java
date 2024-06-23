@@ -18,6 +18,11 @@ public class RpnPrinter implements Expr.Visitor<String> {
     }
 
     @Override
+    public String visit(Expr.Ternary expr) {
+        return "%s %s %s ?".formatted(eval(expr.condition()), eval(expr.first()), eval(expr.second()));
+    }
+
+    @Override
     public String visit(Expr.Unary expr) {
         return "%s %s".formatted(eval(expr.right()), expr.operator().lexeme);
     }

@@ -1,15 +1,25 @@
 package com.interpreters.lox;
 
+import java.util.List;
 public sealed interface Expr {
 	interface Visitor<R> {
+		R visit(Assign expr);
 		R visit(Ternary expr);
 		R visit(Binary expr);
 		R visit(Grouping expr);
 		R visit(Literal expr);
+		R visit(Variable expr);
 		R visit(Unary expr);
 	}
 
 	<R> R accept(Visitor<R> visitor);
+
+    record Assign(Token name, Expr value) implements Expr {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
 
     record Ternary(Expr condition, Expr first, Expr second) implements Expr {
         @Override
@@ -33,6 +43,13 @@ public sealed interface Expr {
     }
 
     record Literal(Object value) implements Expr {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record Variable(Token name) implements Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

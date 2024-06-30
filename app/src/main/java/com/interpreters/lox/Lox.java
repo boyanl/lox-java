@@ -44,13 +44,13 @@ public class Lox {
         var tokens = scanner.scan();
 
         var parser = new Parser(tokens);
-        Expr expression = parser.parse();
+        var statements = parser.parse();
 
         if (hadError) {
             return;
         }
 
-        interpreter.interpret(expression);
+        interpreter.interpret(statements);
     }
 
     public static void error(int line, String error) {

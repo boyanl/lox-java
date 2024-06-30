@@ -1,18 +1,28 @@
 package com.interpreters.lox;
 
+import java.util.List;
 import java.util.Objects;
 
-public class Interpreter implements Expr.Visitor<Object>{
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    void interpret(Expr expr) {
+    private Environment env = new Environment();
+
+    public void interpret(List<Stmt> statements) {
         try {
-            var value = eval(expr);
-            System.out.println(stringify(value));
-        } catch (RuntimeError err) {
-            Lox.runtimeError(err);
+            for (var stmt : statements) {
+                execute(stmt);
+            }
+        } catch (RuntimeError e) {
+            Lox.runtimeError(e);
         }
     }
 
+    @Override
+    public Object visit(Expr.Assign expr) {
+        var val = eval(expr.value());
+        env.assign(expr.name(), val);
+        return val;
+    }
 
     @Override
     public Object visit(Expr.Ternary expr) {
@@ -84,6 +94,11 @@ public class Interpreter implements Expr.Visitor<Object>{
     }
 
     @Override
+    public Object visit(Expr.Variable expr) {
+        return env.getValue(expr.name());
+    }
+
+    @Override
     public Object visit(Expr.Unary expr) {
         var right = eval(expr.right());
 
@@ -134,5 +149,51 @@ public class Interpreter implements Expr.Visitor<Object>{
         }
 
         return val.toString();
+    }
+
+    @Override
+    public Void visit(Stmt.Expression stmt) {
+        eval(stmt.expr());
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.VarDeclaration stmt) {
+        Object val = null;
+        if (stmt.initializer() != null) {
+            val = eval(stmt.initializer());
+        }
+
+        env.define(stmt.name().lexeme, val);
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.Block stmt) {
+        executeBlock(stmt, new Environment(env));
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.Print stmt) {
+        var val = eval(stmt.expr());
+        System.out.println(stringify(val));
+        return null;
+    }
+
+    private void execute(Stmt statement) {
+        statement.accept(this);
+    }
+
+    private void executeBlock(Stmt.Block blockStmt, Environment environment) {
+        var originalEnv = this.env;
+        try {
+            this.env = environment;
+            for (var statement : blockStmt.statements()) {
+                execute(statement);
+            }
+        } finally {
+            this.env = originalEnv;
+        }
     }
 }

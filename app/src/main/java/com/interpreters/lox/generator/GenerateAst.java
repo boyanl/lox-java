@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.StringTemplate.STR;
@@ -13,16 +14,9 @@ import static java.lang.StringTemplate.STR;
 public class GenerateAst {
 
     public static void main(String[] args) throws IOException {
-        if (args.length < 2) {
-            System.out.println("Usage: Generator <output-dir> <grammar-file>");
+        if (args.length < 1) {
+            System.out.println("Usage: Generator <output-dir>");
             System.exit(1);
-        }
-
-
-        var grammarFilePath = Paths.get(args[1]);
-        if (!grammarFilePath.toFile().exists()) {
-            System.out.println(STR."Grammar file doesn't exist: \{grammarFilePath}");
-            System.exit(2);
         }
 
         var outputPath = Paths.get(args[0]);
@@ -30,10 +24,26 @@ public class GenerateAst {
             outputPath.toFile().mkdirs();
         }
 
-        var rules = Files.lines(grammarFilePath).toList();
+        defineAst(outputPath, "Expr", """
+Assign      : Token name, Expr value
+Ternary     : Expr condition, Expr first, Expr second
+Binary      : Expr left, Token operator, Expr right
+Grouping    : Expr expression
+Literal     : Object value
+Variable    : Token name
+Unary       : Token operator, Expr right""");
 
+        defineAst(outputPath, "Stmt", """
+Expression      : Expr expr
+VarDeclaration  : Token name, Expr initializer
+Block           : List<Stmt> statements
+Print           : Expr expr
+""");
+    }
 
-        defineAst(outputPath, "Expr", rules);
+    private static void defineAst(Path outputDir, String className, String rules) throws IOException {
+        var rulesList = Arrays.stream(rules.split("\n")).toList();
+        defineAst(outputDir, className, rulesList);
     }
 
     private static void defineAst(Path outputDir, String className, List<String> exprOptions) throws IOException {
@@ -45,6 +55,7 @@ public class GenerateAst {
 
             writer.println("package com.interpreters.lox;");
             writer.println();
+            writer.println("import java.util.List;");
             writer.printf("public sealed interface %s {\n", className);
 
             var expressionDefs = exprOptions.stream().map(GenerateAst::parseExpressionDef).toList();

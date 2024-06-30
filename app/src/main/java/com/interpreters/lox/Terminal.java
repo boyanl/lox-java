@@ -196,7 +196,7 @@ public class Terminal {
     }
 
     private boolean isWordDelimiter(final char c) {
-        return Character.isWhitespace(c) || c == '+';
+        return Character.isWhitespace(c) || c == '+' || c == '"' || c == '\'';
     }
 
     private void backwardWord() {
@@ -273,6 +273,7 @@ public class Terminal {
         keyMap.bind(TerminalOp.FORWARD_WORD, alt('f'));
         keyMap.bind(TerminalOp.DELETE_WORD_FORWARD, alt('d'));
         keyMap.bind(TerminalOp.DELETE_WORD_BACKWARD, ctrl('w'));
+        keyMap.bind(TerminalOp.IGNORE, "\t");
 
         // PageUp, PageDown, Print Screen, Context Menu button, Num Lock (== Escape)
         final var nonPrintable = List.of(esc() + "[5~", esc() + "[6~", esc() + "[1;2P", ctrl('P'), esc());

@@ -1,5 +1,6 @@
 package com.interpreters.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.interpreters.lox.TokenType.*;
@@ -16,24 +17,117 @@ public class Parser {
     }
 
 
-    public Expr parse() {
+    public List<Stmt> parse() {
+        var result = new ArrayList<Stmt>();
+        while (!isAtEnd()) {
+            var stmt = declaration();
+            result.add(stmt);
+        }
+
+        return result;
+
+    }
+
+    private void synchronize() {
+        advance();
+
+        while (!isAtEnd()) {
+            if (previous().type == SEMICOLON) {
+                return;
+            }
+
+            switch (peek().type) {
+                case IF, PRINT, CLASS, FOR, RETURN, WHILE, FUN, VAR: return;
+            }
+
+            advance();
+        }
+    }
+
+    private Stmt declaration() {
         try {
-            return expression();
-        } catch (ParseError error) {
+            if (match(VAR)) return varDeclaration();
+            return statement();
+        } catch (ParseError e) {
+            synchronize();
             return null;
         }
     }
 
+    private Stmt varDeclaration() {
+        var name = advance();
+        Expr value = null;
+
+        if (match(EQUAL)) {
+            value = expression();
+        }
+
+        consume(SEMICOLON, "; expected after variable declaration");
+        return new Stmt.VarDeclaration(name, value);
+    }
+
+    private Stmt statement() {
+        if (match(PRINT)) {
+            return printStatement();
+        }
+        if (match(LEFT_BRACE)) {
+            return blockStatement();
+        }
+
+        return expressionStatement();
+    }
+
+    private Stmt blockStatement() {
+        var statements = new ArrayList<Stmt>();
+        while(!check(RIGHT_BRACE) && !isAtEnd()) {
+            var stmt = declaration();
+            statements.add(stmt);
+        }
+
+        consume(RIGHT_BRACE, "'}' expected after block");
+
+        return new Stmt.Block(statements);
+    }
+
+    private Stmt printStatement() {
+        var expr = expression();
+        consume(SEMICOLON, "; expected after statement");
+
+        return new Stmt.Print(expr);
+    }
+
+    private Stmt expressionStatement() {
+        var expr = expression();
+        consume(SEMICOLON, "; expected after statement");
+
+        return new Stmt.Expression(expr);
+    }
+
     private Expr expression() {
-        return ternary();
+        return assignment();
+    }
+
+    private Expr assignment() {
+        Expr expr = ternary();
+
+        if (match(EQUAL)) {
+            var equals = previous();
+            var value = assignment();
+
+            if (expr instanceof Expr.Variable var) {
+                return new Expr.Assign(var.name(), value);
+            }
+
+            error(equals, "Invalid assignment target");
+        }
+
+        return expr;
     }
 
     private Expr ternary() {
         var expr = equality();
 
         if (match(QUESTION_MARK)) {
-            Token op = previous();
-
             var first = ternary();
             consume(COLON, "':' expected");
             var second = ternary();
@@ -116,6 +210,10 @@ public class Parser {
             var expr = expression();
             consume(RIGHT_PAREN, "Expected ')' after expression");
             return new Expr.Grouping(expr);
+        }
+
+        if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
         }
 
         throw error(peek(), "Expression expected");

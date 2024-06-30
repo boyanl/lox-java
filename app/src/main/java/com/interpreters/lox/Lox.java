@@ -32,14 +32,13 @@ public class Lox {
 
     private static void runPrompt() throws IOException {
         new Terminal(line -> {
-            run(line);
+            runRepl(line);
             hadError = false;
             hadRuntimeError = false;
         }).run();
     }
 
     private static void run(String source) {
-
         var scanner = new Scanner(source);
         var tokens = scanner.scan();
 
@@ -52,6 +51,46 @@ public class Lox {
 
         interpreter.interpret(statements);
     }
+
+    private static void runRepl(String source) {
+        var scanner = new Scanner(source);
+        var tokens = scanner.scan();
+
+        var parser = new Parser(tokens);
+
+        if (tokens.stream().noneMatch(t -> t.type == TokenType.SEMICOLON)) {
+            // insert semicolon before EOF and parse
+            assert tokens.stream().anyMatch(t -> t.type == TokenType.EOF);
+            if (tokens.size() == 1) {
+                return;
+            }
+
+            tokens.add(tokens.size() - 1, new Token(TokenType.SEMICOLON, ";", null, 1));
+            var statements = parser.parse();
+
+            if (hadError) {
+                return;
+            }
+
+            assert statements.size() == 1;
+            var stmt = statements.get(0);
+
+            if (stmt instanceof Stmt.Expression) {
+                interpreter.evaluteAndPrint(((Stmt.Expression) stmt).expr());
+            } else {
+                interpreter.interpret(statements);
+            }
+        } else {
+            var statements = parser.parse();
+
+            if (hadError) {
+                return;
+            }
+
+            interpreter.interpret(statements);
+        }
+    }
+
 
     public static void error(int line, String error) {
         report(line, "", error);
@@ -71,7 +110,7 @@ public class Lox {
     }
 
     public static void report(int line, String where, String error) {
-        System.out.printf("[line=%d] Error%s: %s%n", line, where, error);
+        System.out.printf("[line=%d] Error %s: %s%n", line, where, error);
         hadError = true;
     }
 

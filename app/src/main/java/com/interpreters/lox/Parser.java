@@ -25,7 +25,10 @@ public class Parser {
         }
 
         return result;
+    }
 
+    public Expr parseExpr() {
+        return expression();
     }
 
     private void synchronize() {

@@ -17,6 +17,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
+    public void evaluteAndPrint(Expr expression) {
+        try {
+            var result = eval(expression);
+            System.out.println(stringify(result));
+        } catch (RuntimeError e) {
+            Lox.runtimeError(e);
+        }
+    }
+
     @Override
     public Object visit(Expr.Assign expr) {
         var val = eval(expr.value());

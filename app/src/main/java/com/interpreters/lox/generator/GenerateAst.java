@@ -31,13 +31,17 @@ Binary      : Expr left, Token operator, Expr right
 Grouping    : Expr expression
 Literal     : Object value
 Variable    : Token name
-Unary       : Token operator, Expr right""");
+Unary       : Token operator, Expr right
+Logical     : Expr left, Token operator, Expr right
+""");
 
         defineAst(outputPath, "Stmt", """
 Expression      : Expr expr
 VarDeclaration  : Token name, Expr initializer
 Block           : List<Stmt> statements
 Print           : Expr expr
+If              : Expr condition, Stmt thenClause, Stmt elseClause
+While           : Expr condition, Stmt body
 """);
     }
 

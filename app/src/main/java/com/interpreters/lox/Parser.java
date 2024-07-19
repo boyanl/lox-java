@@ -27,10 +27,6 @@ public class Parser {
         return result;
     }
 
-    public Expr parseExpr() {
-        return expression();
-    }
-
     private void synchronize() {
         advance();
 
@@ -76,6 +72,15 @@ public class Parser {
         if (match(LEFT_BRACE)) {
             return blockStatement();
         }
+        if (match(IF)) {
+            return ifStatement();
+        }
+        if (match(WHILE)) {
+            return whileStatement();
+        }
+        if (match(FOR)) {
+            return forStatement();
+        }
 
         return expressionStatement();
     }
@@ -97,6 +102,71 @@ public class Parser {
         consume(SEMICOLON, "; expected after statement");
 
         return new Stmt.Print(expr);
+    }
+
+    private Stmt ifStatement() {
+        consume(LEFT_PAREN, "'(' expected after if");
+        var condition = expression();
+        consume(RIGHT_PAREN, "')' expected");
+        var thenStmt = statement();
+        Stmt elseStmt = null;
+
+
+        if (match(ELSE)) {
+            elseStmt = statement();
+        }
+
+        return new Stmt.If(condition, thenStmt, elseStmt);
+    }
+
+    private Stmt whileStatement() {
+        consume(LEFT_PAREN, "'(' expected after 'while'");
+        var condition = expression();
+        consume(RIGHT_PAREN, "')' expected after condition");
+        var body = statement();
+
+        return new Stmt.While(condition, body);
+    }
+
+    private Stmt forStatement() {
+        consume(LEFT_PAREN, "'(' expected after 'for'");
+        Stmt initializer;
+        if (match(SEMICOLON)) {
+            initializer = null;
+        } else if (match(VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expr condition = null;
+        if (!check(SEMICOLON)) {
+            condition = expression();
+        }
+        consume(SEMICOLON, "Expected ';' after 'for' condition");
+
+        Expr increment = null;
+        if (!check(RIGHT_PAREN)) {
+            increment = expression();
+        }
+        consume(RIGHT_PAREN, "Expected ')' after the clauses");
+
+        var body = statement();
+
+        if (increment != null) {
+            body = new Stmt.Block(List.of(body, new Stmt.Expression(increment)));
+        }
+
+        if (condition == null) {
+            condition = new Expr.Literal(true);
+        }
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block(List.of(initializer, body));
+        }
+
+        return body;
     }
 
     private Stmt expressionStatement() {
@@ -127,8 +197,9 @@ public class Parser {
         return expr;
     }
 
+
     private Expr ternary() {
-        var expr = equality();
+        var expr = or();
 
         if (match(QUESTION_MARK)) {
             var first = ternary();
@@ -137,6 +208,28 @@ public class Parser {
             return new Expr.Ternary(expr, first, second);
         }
 
+        return expr;
+    }
+
+    private Expr or() {
+        var expr = and();
+
+        while (match(OR)) {
+            var token = previous();
+            var right = or();
+            expr = new Expr.Logical(expr, token, right);
+        }
+        return expr;
+    }
+
+    private Expr and() {
+        var expr = equality();
+
+        while (match(AND)) {
+            var token = previous();
+            var right = and();
+            expr = new Expr.Logical(expr, token, right);
+        }
         return expr;
     }
 

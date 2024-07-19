@@ -121,6 +121,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         };
     }
 
+    @Override
+    public Object visit(Expr.Logical expr) {
+        var leftVal = eval(expr.left());
+        if ((expr.operator().type == TokenType.OR && isTruthy(leftVal)) ||
+                (expr.operator().type == TokenType.AND && !isTruthy(leftVal))) {
+            return leftVal;
+        }
+
+        return eval(expr.right());
+    }
+
     private Object eval(Expr expr) {
         return expr.accept(this);
     }
@@ -187,6 +198,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visit(Stmt.Print stmt) {
         var val = eval(stmt.expr());
         System.out.println(stringify(val));
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.If stmt) {
+        if (isTruthy(eval(stmt.condition()))) {
+            execute(stmt.thenClause());
+        } else if (stmt.elseClause() != null){
+            execute(stmt.elseClause());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.While stmt) {
+        while(isTruthy(eval(stmt.condition()))) {
+            execute(stmt.body());
+        }
         return null;
     }
 

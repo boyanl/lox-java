@@ -7,6 +7,8 @@ public sealed interface Stmt {
 		R visit(VarDeclaration stmt);
 		R visit(Block stmt);
 		R visit(Print stmt);
+		R visit(If stmt);
+		R visit(While stmt);
 	}
 
 	<R> R accept(Visitor<R> visitor);
@@ -33,6 +35,20 @@ public sealed interface Stmt {
     }
 
     record Print(Expr expr) implements Stmt {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record If(Expr condition, Stmt thenClause, Stmt elseClause) implements Stmt {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record While(Expr condition, Stmt body) implements Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

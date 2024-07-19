@@ -1,12 +1,5 @@
-var a = 5;
-print a + a/2;
-{
-    var a = 10;
-    print a;
-    {
-        var a = 25;
-        print 10 + a + 3/(a*a);
-    }
-    print a;
+var x = 0;
+while (x < 10) {
+    print x;
+    x = x+1;
 }
-print a;

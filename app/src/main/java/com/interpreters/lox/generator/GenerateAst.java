@@ -42,6 +42,7 @@ Block           : List<Stmt> statements
 Print           : Expr expr
 If              : Expr condition, Stmt thenClause, Stmt elseClause
 While           : Expr condition, Stmt body
+Break           : \s
 """);
     }
 

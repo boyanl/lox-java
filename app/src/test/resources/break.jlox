@@ -1,0 +1,18 @@
+
+var sum = 0;
+var n = 99;
+for (var i = 0; i <= n; i = i+1) {
+    for (var j = 0; j <= n; j = j+1) {
+        sum = sum + j;
+        if (j >= i) break;
+    }
+}
+
+// Correct answer is 1/6*n*(n+1)*(n+2)
+print sum;
+var expected = n*(n+1)*(n+2)/6;
+if (sum == expected) {
+    print "Correct answer";
+} else {
+    print "Expected answer is: " + expected;
+}

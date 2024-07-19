@@ -192,6 +192,8 @@ public class Scanner {
                 entry("super", SUPER),
                 entry("this", THIS),
                 entry("var", VAR),
-                entry("while", WHILE));
+                entry("while", WHILE),
+                entry("break", BREAK)
+        );
     }
 }

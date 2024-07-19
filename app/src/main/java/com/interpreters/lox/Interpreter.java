@@ -6,6 +6,7 @@ import java.util.Objects;
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private Environment env = new Environment();
+    private boolean shouldBreak = false;
 
     public void interpret(List<Stmt> statements) {
         try {
@@ -54,6 +55,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     yield l + r;
                 } else if (left instanceof String s1 && right instanceof String s2) {
                     yield s1 + s2;
+                } else if (left instanceof String s && right instanceof Double d) { // TODO: For debugging purposes, for now (to be able to do `print "X is: " + x`)
+                    yield s + stringify(d);
                 }
 
                 throw new RuntimeError(expr.operator(), "Operands should either be numbers or strings");
@@ -215,7 +218,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visit(Stmt.While stmt) {
         while(isTruthy(eval(stmt.condition()))) {
             execute(stmt.body());
+            if (shouldBreak) {
+                shouldBreak = false;
+                break;
+            }
         }
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.Break stmt) {
+        shouldBreak = true;
         return null;
     }
 
@@ -229,6 +242,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             this.env = environment;
             for (var statement : blockStmt.statements()) {
                 execute(statement);
+                if (shouldBreak) {
+                    return;
+                }
             }
         } finally {
             this.env = originalEnv;

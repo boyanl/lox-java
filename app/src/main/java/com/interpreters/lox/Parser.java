@@ -309,7 +309,35 @@ public class Parser {
             return new Expr.Unary(op, right);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expr call() {
+        Expr call = primary();
+        while (true) {
+            if (match(LEFT_PAREN)) {
+                call = finishCall(call);
+            } else {
+                break;
+            }
+        }
+
+        return call;
+    }
+
+    private Expr finishCall(Expr target) {
+        List<Expr> args = new ArrayList<>();
+        while (!check(RIGHT_PAREN)) {
+            do {
+                if (args.size() >= 255) {
+                    error(peek(), "Maximum number of arguments is 255");
+                }
+                args.add(expression());
+            } while (!match(COMMA));
+        }
+
+        Token paren = consume(RIGHT_PAREN, "Expected ')' after function arguments");
+        return new Expr.Call(target, paren, args);
     }
 
     private Expr primary() {

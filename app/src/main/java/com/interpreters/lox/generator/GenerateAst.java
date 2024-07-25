@@ -33,6 +33,7 @@ Literal     : Object value
 Variable    : Token name
 Unary       : Token operator, Expr right
 Logical     : Expr left, Token operator, Expr right
+Call        : Expr target, Token paren, List<Expr> args
 """);
 
         defineAst(outputPath, "Stmt", """

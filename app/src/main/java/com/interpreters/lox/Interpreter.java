@@ -8,7 +8,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private final Environment globals = new Environment();
     private Environment env = globals;
-    private boolean shouldBreak = false;
 
     public Interpreter() {
         this.globals.define("clock", new LoxCallable() {
@@ -257,35 +256,49 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visit(Stmt.While stmt) {
-        while(isTruthy(eval(stmt.condition()))) {
-            execute(stmt.body());
-            if (shouldBreak) {
-                shouldBreak = false;
-                break;
+        try {
+            while(isTruthy(eval(stmt.condition()))) {
+                execute(stmt.body());
             }
-        }
+        } catch (Break ignored) {}
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.Function stmt) {
+        globals.define(stmt.name().lexeme, new LoxFunction(stmt, env));
         return null;
     }
 
     @Override
     public Void visit(Stmt.Break stmt) {
-        shouldBreak = true;
-        return null;
+        throw new Break();
+    }
+
+    @Override
+    public Void visit(Stmt.Return stmt) {
+        var value = eval(stmt.value());
+        throw new Return(value);
+    }
+
+    public Environment getGlobalsEnv() {
+        return env;
     }
 
     private void execute(Stmt statement) {
         statement.accept(this);
     }
 
-    private void executeBlock(Stmt.Block blockStmt, Environment environment) {
+    public void executeBlock(Stmt.Block blockStmt, Environment environment) {
+        executeBlock(blockStmt.statements(), environment);
+    }
+
+    public void executeBlock(List<Stmt> statements, Environment environment) {
         var originalEnv = this.env;
         try {
             this.env = environment;
-            for (var statement : blockStmt.statements()) {
+            for (var statement : statements) {
                 execute(statement);
-                if (shouldBreak) {
-                    return;
-                }
             }
         } finally {
             this.env = originalEnv;

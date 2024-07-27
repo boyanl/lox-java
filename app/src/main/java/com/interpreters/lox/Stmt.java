@@ -9,7 +9,9 @@ public sealed interface Stmt {
 		R visit(Print stmt);
 		R visit(If stmt);
 		R visit(While stmt);
+		R visit(Function stmt);
 		R visit(Break stmt);
+		R visit(Return stmt);
 	}
 
 	<R> R accept(Visitor<R> visitor);
@@ -56,7 +58,21 @@ public sealed interface Stmt {
         }
     }
 
+    record Function(Token name, List<Token> params, List<Stmt> body) implements Stmt {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
     record Break() implements Stmt {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record Return(Expr value) implements Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

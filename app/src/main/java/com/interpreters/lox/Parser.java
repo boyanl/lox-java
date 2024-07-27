@@ -85,11 +85,17 @@ public class Parser {
         if (match(BREAK)) {
             return breakStatement();
         }
+        if (match(FUN)) {
+            return function();
+        }
+        if (match(RETURN)) {
+            return returnStatement();
+        }
 
         return expressionStatement();
     }
 
-    private Stmt blockStatement() {
+    private Stmt.Block blockStatement() {
         var statements = new ArrayList<Stmt>();
         while(!check(RIGHT_BRACE) && !isAtEnd()) {
             var stmt = declaration();
@@ -185,6 +191,40 @@ public class Parser {
 
         return new Stmt.Break();
     }
+
+    private Stmt function() {
+
+        var name = consume(IDENTIFIER, "Expect function name");
+        consume(LEFT_PAREN, "Expect '(' after function name");
+
+        List<Token> params = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (params.size() >= 255) {
+                    error(peek(), "Maximum number of arguments is 255");
+                }
+                var param = consume(IDENTIFIER, "Expect parameter name.");
+                params.add(param);
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expect ')' after parameters");
+        consume(LEFT_BRACE, "Expect '{' before function body");
+
+        var body = blockStatement().statements();
+
+        return new Stmt.Function(name, params, body);
+    }
+
+    private Stmt returnStatement() {
+        Expr value = null;
+        if (!match(SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(SEMICOLON, "Expected ';' after return");
+        return new Stmt.Return(value);
+    }
+
 
     private Stmt expressionStatement() {
         var expr = expression();
@@ -333,7 +373,7 @@ public class Parser {
                     error(peek(), "Maximum number of arguments is 255");
                 }
                 args.add(expression());
-            } while (!match(COMMA));
+            } while (match(COMMA));
         }
 
         Token paren = consume(RIGHT_PAREN, "Expected ')' after function arguments");

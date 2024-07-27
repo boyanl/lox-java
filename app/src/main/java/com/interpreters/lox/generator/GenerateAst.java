@@ -43,7 +43,9 @@ Block           : List<Stmt> statements
 Print           : Expr expr
 If              : Expr condition, Stmt thenClause, Stmt elseClause
 While           : Expr condition, Stmt body
+Function        : Token name, List<Token> params, List<Stmt> body
 Break           : \s
+Return          : Expr value
 """);
     }
 

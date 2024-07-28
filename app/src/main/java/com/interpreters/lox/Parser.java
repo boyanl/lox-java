@@ -85,7 +85,8 @@ public class Parser {
         if (match(BREAK)) {
             return breakStatement();
         }
-        if (match(FUN)) {
+        if (check(FUN) && checkNext(IDENTIFIER)) {
+            consume(FUN, null);
             return function();
         }
         if (match(RETURN)) {
@@ -193,8 +194,11 @@ public class Parser {
     }
 
     private Stmt function() {
-
         var name = consume(IDENTIFIER, "Expect function name");
+        return new Stmt.Function(name, functionBody());
+    }
+
+    private Expr.Function functionBody() {
         consume(LEFT_PAREN, "Expect '(' after function name");
 
         List<Token> params = new ArrayList<>();
@@ -212,7 +216,7 @@ public class Parser {
 
         var body = blockStatement().statements();
 
-        return new Stmt.Function(name, params, body);
+        return new Expr.Function(params, body);
     }
 
     private Stmt returnStatement() {
@@ -253,7 +257,6 @@ public class Parser {
 
         return expr;
     }
-
 
     private Expr ternary() {
         var expr = or();
@@ -396,6 +399,9 @@ public class Parser {
         if (match(IDENTIFIER)) {
             return new Expr.Variable(previous());
         }
+        if (match(FUN)) {
+            return functionBody();
+        }
 
         throw error(peek(), "Expression expected");
     }
@@ -423,6 +429,11 @@ public class Parser {
         return peek().type == type;
     }
 
+    private boolean checkNext(TokenType type) {
+        if (isAtEnd() || isAtEnd(current + 1)) return false;
+        return tokens.get(current + 1).type == type;
+    }
+
     private Token previous() {
         return tokens.get(current - 1);
     }
@@ -439,6 +450,10 @@ public class Parser {
     private boolean isAtEnd() {
         return current >= tokens.size() - 1;
 //        return peek().type == TokenType.EOF;
+    }
+
+    private boolean isAtEnd(int index) {
+        return index >= tokens.size() - 1;
     }
 
     private ParseError error(Token token, String errorMsg) {

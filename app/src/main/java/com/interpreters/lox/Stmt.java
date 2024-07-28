@@ -58,7 +58,7 @@ public sealed interface Stmt {
         }
     }
 
-    record Function(Token name, List<Token> params, List<Stmt> body) implements Stmt {
+    record Function(Token name, Expr.Function function) implements Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

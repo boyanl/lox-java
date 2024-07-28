@@ -175,6 +175,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return callable.call(this, args);
     }
 
+    @Override
+    public Object visit(Expr.Function expr) {
+        return new LoxFunction(null, expr, env);
+    }
+
     private Object eval(Expr expr) {
         return expr.accept(this);
     }
@@ -266,7 +271,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visit(Stmt.Function stmt) {
-        globals.define(stmt.name().lexeme, new LoxFunction(stmt, env));
+        globals.define(stmt.name().lexeme, new LoxFunction(stmt.name().lexeme, stmt.function(), env));
         return null;
     }
 

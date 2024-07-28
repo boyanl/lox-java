@@ -1,0 +1,17 @@
+fun makeCounter() {
+    var cnt = 0;
+    return fun() {
+        cnt = cnt + 1;
+        return cnt;
+    };
+}
+
+var counter = makeCounter();
+var n = 10;
+var sum = 0;
+for (var i = 0; i < n; i = i+1) {
+    sum = sum + counter();
+}
+
+print "Sum = " + sum;
+

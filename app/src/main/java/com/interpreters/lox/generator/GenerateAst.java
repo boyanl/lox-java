@@ -34,6 +34,7 @@ Variable    : Token name
 Unary       : Token operator, Expr right
 Logical     : Expr left, Token operator, Expr right
 Call        : Expr target, Token paren, List<Expr> args
+Function    : List<Token> params, List<Stmt> body
 """);
 
         defineAst(outputPath, "Stmt", """
@@ -43,7 +44,7 @@ Block           : List<Stmt> statements
 Print           : Expr expr
 If              : Expr condition, Stmt thenClause, Stmt elseClause
 While           : Expr condition, Stmt body
-Function        : Token name, List<Token> params, List<Stmt> body
+Function        : Token name, Expr.Function function
 Break           : \s
 Return          : Expr value
 """);

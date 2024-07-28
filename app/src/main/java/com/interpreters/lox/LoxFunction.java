@@ -4,10 +4,11 @@ import java.util.List;
 
 public class LoxFunction implements LoxCallable {
 
-    private final Stmt.Function function;
+    private String name;
+    private final Expr.Function function;
     private final Environment environment;
 
-    public LoxFunction(Stmt.Function function, Environment environment) {
+    public LoxFunction(String name, Expr.Function function, Environment environment) {
         this.function = function;
         this.environment = environment;
     }
@@ -33,5 +34,13 @@ public class LoxFunction implements LoxCallable {
         }
 
         return null;
+    }
+
+    @Override
+    public String toString() {
+        if (name != null) {
+            return "<fn %s>".formatted(name);
+        }
+        return "<lambda fn>";
     }
 }

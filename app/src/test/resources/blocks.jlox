@@ -1,5 +1,10 @@
-var x = 0;
-while (x < 10) {
-    print x;
-    x = x+1;
+var a = "global";
+{
+    fun showA() {
+        print a;
+    }
+
+    showA();
+    var a = "block";
+    showA();
 }

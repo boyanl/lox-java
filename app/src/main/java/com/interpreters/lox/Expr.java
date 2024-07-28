@@ -12,6 +12,7 @@ public sealed interface Expr {
 		R visit(Unary expr);
 		R visit(Logical expr);
 		R visit(Call expr);
+		R visit(Function expr);
 	}
 
 	<R> R accept(Visitor<R> visitor);
@@ -73,6 +74,13 @@ public sealed interface Expr {
     }
 
     record Call(Expr target, Token paren, List<Expr> args) implements Expr {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record Function(List<Token> params, List<Stmt> body) implements Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

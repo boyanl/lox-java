@@ -58,7 +58,8 @@ public class Lox {
 
         var parser = new Parser(tokens);
 
-        if (tokens.stream().noneMatch(t -> t.type == TokenType.SEMICOLON)) {
+        var endsInSemicolon = tokens.size() >= 2 && tokens.get(tokens.size() - 2).type == TokenType.SEMICOLON;
+        if (!endsInSemicolon) {
             // insert semicolon before EOF and parse
             assert tokens.stream().anyMatch(t -> t.type == TokenType.EOF);
             if (tokens.size() == 1) {

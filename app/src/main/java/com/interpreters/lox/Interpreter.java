@@ -1,13 +1,12 @@
 package com.interpreters.lox;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private final Environment globals = new Environment();
     private Environment env = globals;
+    private final Map<Expr, Integer> resolutions = new HashMap<>();
 
     public Interpreter() {
         this.globals.define("clock", new LoxCallable() {
@@ -50,7 +49,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visit(Expr.Assign expr) {
         var val = eval(expr.value());
-        env.assign(expr.name(), val);
+
+        var distance = resolutions.get(expr);
+        if (distance != null) {
+            env.assignAt(distance, expr.name(), val);
+        } else {
+            globals.assign(expr.name(), val);
+        }
+
         return val;
     }
 
@@ -127,7 +133,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visit(Expr.Variable expr) {
-        return env.getValue(expr.name());
+        return lookUpVariable(expr, expr.name());
     }
 
     @Override
@@ -286,9 +292,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         throw new Return(value);
     }
 
-    public Environment getGlobalsEnv() {
-        return env;
+    public void resolve(Expr expr, int level) {
+        resolutions.put(expr, level);
     }
+
 
     private void execute(Stmt statement) {
         statement.accept(this);
@@ -308,5 +315,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         } finally {
             this.env = originalEnv;
         }
+    }
+
+    private Object lookUpVariable(Expr variable, Token name) {
+        var depth = resolutions.get(variable);
+        if (depth != null) {
+            return env.getAt(depth, name);
+        }
+        return globals.getValue(name);
     }
 }

@@ -33,7 +33,6 @@ public class Environment {
     }
 
     public Object getValue(Token name) {
-
         Object val = variableMappings.get(name.lexeme);
         if (val == null) {
             if (parent != null) {
@@ -43,5 +42,22 @@ public class Environment {
         }
 
         return val;
+    }
+
+    public Object getAt(int depth, Token name) {
+        return ancestor(depth).getValue(name);
+    }
+
+    public void assignAt(int depth, Token token, Object value) {
+        ancestor(depth).assign(token, value);
+    }
+
+
+    private Environment ancestor(int distance) {
+        var environment = this;
+        for (int i = 0; i < distance; i++) {
+            environment = environment.parent;
+        }
+        return environment;
     }
 }

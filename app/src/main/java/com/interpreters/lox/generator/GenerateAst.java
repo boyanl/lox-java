@@ -46,7 +46,7 @@ If              : Expr condition, Stmt thenClause, Stmt elseClause
 While           : Expr condition, Stmt body
 Function        : Token name, Expr.Function function
 Break           : \s
-Return          : Expr value
+Return          : Token keyword, Expr value
 """);
     }
 

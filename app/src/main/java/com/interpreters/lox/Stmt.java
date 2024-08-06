@@ -72,7 +72,7 @@ public sealed interface Stmt {
         }
     }
 
-    record Return(Expr value) implements Stmt {
+    record Return(Token keyword, Expr value) implements Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

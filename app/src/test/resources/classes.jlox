@@ -1,15 +1,23 @@
 class MonkeyStuff {
+    init(x, y) {
+        this.x = x*3;
+        this.y = y/3;
+
+        if (this.x == 21) return;
+
+        print "Initializing .. X = " + this.x + ", Y = " + this.y;
+    }
+
     makeMonkeys() {
         print "Doin' stuff; color today is: " + this.color;
     }
 }
 
 fun just_a_function(x) {
-    this.color = "swift";
     return x*2;
 }
 
-var powder = MonkeyStuff();
+var powder = MonkeyStuff(8, 8);
 powder.color = "black";
 powder.makeMonkeys();
 

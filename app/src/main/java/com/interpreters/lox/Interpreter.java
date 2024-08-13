@@ -183,7 +183,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visit(Expr.Function expr) {
-        return new LoxFunction(null, expr, env);
+        return new LoxFunction(null, expr, env, false);
     }
 
     @Override
@@ -304,7 +304,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visit(Stmt.Function stmt) {
-        globals.define(stmt.name().lexeme, new LoxFunction(stmt.name().lexeme, stmt.function(), env));
+        globals.define(stmt.name().lexeme, new LoxFunction(stmt.name().lexeme, stmt.function(), env, false));
         return null;
     }
 
@@ -314,7 +314,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
         var functions = new HashMap<String, LoxFunction>();
         for (var method : stmt.methods()) {
-            var fn = new LoxFunction(method.name().lexeme, method.function(), env);
+            var fn = new LoxFunction(method.name().lexeme, method.function(), env, method.name().lexeme.equals("init"));
             functions.put(method.name().lexeme, fn);
         }
 
@@ -330,7 +330,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visit(Stmt.Return stmt) {
-        var value = eval(stmt.value());
+        Object value = null;
+        if (stmt.value() != null) {
+            value = eval(stmt.value());
+        }
+
         throw new Return(value);
     }
 

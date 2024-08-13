@@ -239,7 +239,7 @@ public class Parser {
     private Stmt returnStatement() {
         Token keyword = previous();
         Expr value = null;
-        if (!match(SEMICOLON)) {
+        if (!check(SEMICOLON)) {
             value = expression();
         }
 

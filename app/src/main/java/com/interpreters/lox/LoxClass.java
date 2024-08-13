@@ -23,12 +23,19 @@ public class LoxClass implements LoxCallable{
 
     @Override
     public int arity() {
-        return 0;
+        var initializer = findMethod("init");
+        return initializer != null ? initializer.arity() : 0;
     }
 
     @Override
     public Object call(Interpreter interpreter, List<Object> args) {
-        return new LoxInstance(this);
+        var instance = new LoxInstance(this);
+        var initializer = findMethod("init");
+        if (initializer != null) {
+            initializer.bind(instance).call(interpreter, args);
+        }
+
+        return instance;
     }
 
     public LoxFunction findMethod(String name) {

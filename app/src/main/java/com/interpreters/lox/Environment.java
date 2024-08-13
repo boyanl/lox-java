@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
-    private Map<String, Object> variableMappings = new HashMap<>();
+    private final Map<String, Object> variableMappings = new HashMap<>();
     private Environment parent;
 
     public Environment() {
@@ -46,6 +46,10 @@ public class Environment {
 
     public Object getAt(int depth, Token name) {
         return ancestor(depth).getValue(name);
+    }
+
+    public Object getAt(int depth, String name) {
+        return ancestor(depth).variableMappings.get(name);
     }
 
     public void assignAt(int depth, Token token, Object value) {

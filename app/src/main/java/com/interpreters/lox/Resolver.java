@@ -10,9 +10,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
     private final Interpreter interpreter;
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
-    private static enum FunctionType { // this better be worth it
-        FUNCTION, NONE
+    private enum FunctionType {
+        FUNCTION, METHOD, NONE
+    }
+
+    private enum ClassType {
+        CLASS, NONE
     }
 
     public Resolver(Interpreter interpreter) {
@@ -92,6 +97,28 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visit(Expr.Get expr) {
+        resolve(expr.target());
+        return null;
+    }
+
+    @Override
+    public Void visit(Expr.Set expr) {
+        resolve(expr.target());
+        resolve(expr.value());
+        return null;
+    }
+
+    @Override
+    public Void visit(Expr.This expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword(), "'this' can only be used inside a class method");
+        }
+        resolveLocal(expr, expr.keyword());
+        return null;
+    }
+
+    @Override
     public Void visit(Stmt.Expression stmt) {
         resolve(stmt.expr());
         return null;
@@ -142,6 +169,25 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         declare(stmt.name());
         define(stmt.name());
         resolveFunction(stmt.function(), FunctionType.FUNCTION);
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.Class stmt) {
+        declare(stmt.name());
+        define(stmt.name());
+
+        var enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+        beginScope();
+        scopes.peek().put("this", true);
+
+        for (var method : stmt.methods()) {
+            resolveFunction(method.function(), FunctionType.METHOD);
+        }
+        endScope();
+        currentClass = enclosingClass;
+
         return null;
     }
 

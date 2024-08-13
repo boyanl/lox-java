@@ -4,11 +4,12 @@ import java.util.List;
 
 public class LoxFunction implements LoxCallable {
 
-    private String name;
+    private final String name;
     private final Expr.Function function;
     private final Environment environment;
 
     public LoxFunction(String name, Expr.Function function, Environment environment) {
+        this.name = name;
         this.function = function;
         this.environment = environment;
     }
@@ -34,6 +35,12 @@ public class LoxFunction implements LoxCallable {
         }
 
         return null;
+    }
+
+    public LoxFunction bind(LoxInstance thisInstance) {
+        var env = new Environment(environment);
+        env.define("this", thisInstance);
+        return new LoxFunction(name, function, env);
     }
 
     @Override

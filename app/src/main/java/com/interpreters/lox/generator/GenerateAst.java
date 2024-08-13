@@ -35,6 +35,9 @@ Unary       : Token operator, Expr right
 Logical     : Expr left, Token operator, Expr right
 Call        : Expr target, Token paren, List<Expr> args
 Function    : List<Token> params, List<Stmt> body
+Get         : Expr target, Token name
+Set         : Expr target, Token name, Expr value
+This        : Token keyword
 """);
 
         defineAst(outputPath, "Stmt", """
@@ -45,6 +48,7 @@ Print           : Expr expr
 If              : Expr condition, Stmt thenClause, Stmt elseClause
 While           : Expr condition, Stmt body
 Function        : Token name, Expr.Function function
+Class           : Token name, List<Function> methods
 Break           : \s
 Return          : Token keyword, Expr value
 """);

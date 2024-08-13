@@ -186,6 +186,33 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return new LoxFunction(null, expr, env);
     }
 
+    @Override
+    public Object visit(Expr.Get expr) {
+        var object = eval(expr.target());
+        if (!(object instanceof LoxInstance inst)) {
+            throw new RuntimeError(expr.name(), "Only instances have properties");
+        }
+
+        return inst.get(expr.name());
+    }
+
+    @Override
+    public Object visit(Expr.Set expr) {
+        var object = eval(expr.target());
+        if (!(object instanceof LoxInstance inst)) {
+            throw new RuntimeError(expr.name(), "Only instances have properties");
+        }
+
+        var value = eval(expr.value());
+        inst.set(expr.name(), value);
+        return null;
+    }
+
+    @Override
+    public Object visit(Expr.This expr) {
+        return lookUpVariable(expr, expr.keyword());
+    }
+
     private Object eval(Expr expr) {
         return expr.accept(this);
     }
@@ -278,6 +305,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visit(Stmt.Function stmt) {
         globals.define(stmt.name().lexeme, new LoxFunction(stmt.name().lexeme, stmt.function(), env));
+        return null;
+    }
+
+    @Override
+    public Void visit(Stmt.Class stmt) {
+        env.define(stmt.name().lexeme, null);
+
+        var functions = new HashMap<String, LoxFunction>();
+        for (var method : stmt.methods()) {
+            var fn = new LoxFunction(method.name().lexeme, method.function(), env);
+            functions.put(method.name().lexeme, fn);
+        }
+
+        var klass = new LoxClass(stmt.name().lexeme, functions);
+        env.define(stmt.name().lexeme, klass);
         return null;
     }
 

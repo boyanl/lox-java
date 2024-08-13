@@ -89,6 +89,9 @@ public class Parser {
             consume(FUN, null);
             return function();
         }
+        if (match(CLASS)) {
+            return classStatement();
+        }
         if (match(RETURN)) {
             return returnStatement();
         }
@@ -193,7 +196,7 @@ public class Parser {
         return new Stmt.Break();
     }
 
-    private Stmt function() {
+    private Stmt.Function function() {
         var name = consume(IDENTIFIER, "Expect function name");
         return new Stmt.Function(name, functionBody());
     }
@@ -217,6 +220,20 @@ public class Parser {
         var body = blockStatement().statements();
 
         return new Expr.Function(params, body);
+    }
+
+    private Stmt classStatement() {
+        var name = consume(IDENTIFIER, "Expect class name");
+        consume(LEFT_BRACE, "Expected '{' after class name");
+
+        var fns = new ArrayList<Stmt.Function>();
+        while(!check(RIGHT_BRACE) && !isAtEnd()) {
+            fns.add(function());
+        }
+
+        consume(RIGHT_BRACE, "Expected '}' after class declaration");
+
+        return new Stmt.Class(name, fns);
     }
 
     private Stmt returnStatement() {
@@ -251,6 +268,8 @@ public class Parser {
 
             if (expr instanceof Expr.Variable var) {
                 return new Expr.Assign(var.name(), value);
+            } else if (expr instanceof Expr.Get get) {
+                return new Expr.Set(get.target(), get.name(), value);
             }
 
             error(equals, "Invalid assignment target");
@@ -357,16 +376,19 @@ public class Parser {
     }
 
     private Expr call() {
-        Expr call = primary();
+        Expr expr = primary();
         while (true) {
             if (match(LEFT_PAREN)) {
-                call = finishCall(call);
+                expr = finishCall(expr);
+            } else if (match(DOT)) {
+                var name = consume(IDENTIFIER, "Expected identifier after '.'");
+                expr = new Expr.Get(expr, name);
             } else {
                 break;
             }
         }
 
-        return call;
+        return expr;
     }
 
     private Expr finishCall(Expr target) {
@@ -388,6 +410,7 @@ public class Parser {
         if (match(TRUE)) return new Expr.Literal(true);
         if (match(FALSE)) return new Expr.Literal(false);
         if (match(NIL)) return new Expr.Literal(null);
+        if (match(THIS)) return new Expr.This(previous());
 
         if (match(NUMBER, STRING)) return new Expr.Literal(previous().literal);
 

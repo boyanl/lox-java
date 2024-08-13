@@ -1,0 +1,16 @@
+class MonkeyStuff {
+    makeMonkeys() {
+        print "Doin' stuff; color today is: " + this.color;
+    }
+}
+
+fun just_a_function(x) {
+    this.color = "swift";
+    return x*2;
+}
+
+var powder = MonkeyStuff();
+powder.color = "black";
+powder.makeMonkeys();
+
+print just_a_function(10);

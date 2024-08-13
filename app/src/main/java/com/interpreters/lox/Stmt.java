@@ -10,6 +10,7 @@ public sealed interface Stmt {
 		R visit(If stmt);
 		R visit(While stmt);
 		R visit(Function stmt);
+		R visit(Class stmt);
 		R visit(Break stmt);
 		R visit(Return stmt);
 	}
@@ -59,6 +60,13 @@ public sealed interface Stmt {
     }
 
     record Function(Token name, Expr.Function function) implements Stmt {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record Class(Token name, List<Function> methods) implements Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

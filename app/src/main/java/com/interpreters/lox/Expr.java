@@ -13,6 +13,9 @@ public sealed interface Expr {
 		R visit(Logical expr);
 		R visit(Call expr);
 		R visit(Function expr);
+		R visit(Get expr);
+		R visit(Set expr);
+		R visit(This expr);
 	}
 
 	<R> R accept(Visitor<R> visitor);
@@ -81,6 +84,27 @@ public sealed interface Expr {
     }
 
     record Function(List<Token> params, List<Stmt> body) implements Expr {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record Get(Expr target, Token name) implements Expr {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record Set(Expr target, Token name, Expr value) implements Expr {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record This(Token keyword) implements Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

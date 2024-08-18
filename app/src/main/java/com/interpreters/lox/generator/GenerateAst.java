@@ -38,6 +38,7 @@ Function    : List<Token> params, List<Stmt> body
 Get         : Expr target, Token name
 Set         : Expr target, Token name, Expr value
 This        : Token keyword
+Super       : Token keyword, Token method
 """);
 
         defineAst(outputPath, "Stmt", """
@@ -48,7 +49,7 @@ Print           : Expr expr
 If              : Expr condition, Stmt thenClause, Stmt elseClause
 While           : Expr condition, Stmt body
 Function        : Token name, Expr.Function function
-Class           : Token name, List<Function> methods
+Class           : Token name, Expr.Variable superclass, List<Function> methods
 Break           : \s
 Return          : Token keyword, Expr value
 """);

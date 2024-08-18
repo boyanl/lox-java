@@ -17,7 +17,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     private enum ClassType {
-        CLASS, NONE
+        CLASS, SUBCLASS, NONE
     }
 
     public Resolver(Interpreter interpreter) {
@@ -119,6 +119,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visit(Expr.Super expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword(), "'super' can only be used inside classes");
+        }
+        if (currentClass == ClassType.CLASS) {
+            Lox.error(expr.keyword(), "'super' used in a class that does not have a superclass");
+        }
+
+        resolveLocal(expr, expr.keyword());
+        return null;
+    }
+
+    @Override
     public Void visit(Stmt.Expression stmt) {
         resolve(stmt.expr());
         return null;
@@ -174,11 +187,22 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visit(Stmt.Class stmt) {
+        var enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
         declare(stmt.name());
         define(stmt.name());
 
-        var enclosingClass = currentClass;
-        currentClass = ClassType.CLASS;
+        if (stmt.superclass() != null) {
+            currentClass = ClassType.SUBCLASS;
+            resolve(stmt.superclass());
+        }
+
+
+        if (stmt.superclass() != null) {
+            beginScope();
+            scopes.peek().put("super", true);
+        }
         beginScope();
         scopes.peek().put("this", true);
 
@@ -188,6 +212,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         }
         endScope();
         currentClass = enclosingClass;
+
+        if (stmt.superclass() != null) endScope();
 
         return null;
     }

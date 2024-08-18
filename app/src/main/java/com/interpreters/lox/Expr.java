@@ -16,6 +16,7 @@ public sealed interface Expr {
 		R visit(Get expr);
 		R visit(Set expr);
 		R visit(This expr);
+		R visit(Super expr);
 	}
 
 	<R> R accept(Visitor<R> visitor);
@@ -105,6 +106,13 @@ public sealed interface Expr {
     }
 
     record This(Token keyword) implements Expr {
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visit(this);
+        }
+    }
+
+    record Super(Token keyword, Token method) implements Expr {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

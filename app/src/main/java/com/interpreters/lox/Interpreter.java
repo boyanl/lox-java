@@ -213,6 +213,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return lookUpVariable(expr, expr.keyword());
     }
 
+    @Override
+    public Object visit(Expr.Super expr) {
+        var depth = resolutions.get(expr);
+        var superclass = (LoxClass) env.getAt(depth, "super");
+        var method = superclass.findMethod(expr.method().lexeme);
+
+        if (method == null) {
+            throw new RuntimeError(expr.method(), "Can't find super method '%s'".formatted(expr.method().lexeme));
+        }
+        var object = (LoxInstance) env.getAt(depth - 1, "this");
+
+        return method.bind(object);
+    }
+
     private Object eval(Expr expr) {
         return expr.accept(this);
     }
@@ -310,7 +324,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visit(Stmt.Class stmt) {
+
+        LoxClass superclass = null;
+        if (stmt.superclass() != null) {
+            Object superVal = eval(stmt.superclass());
+            if (!(superVal instanceof LoxClass)) {
+                throw new RuntimeError(stmt.superclass().name(), "Must have a class as a superclass");
+            }
+
+            superclass = (LoxClass) superVal;
+        }
         env.define(stmt.name().lexeme, null);
+
+        if (stmt.superclass() != null) {
+            env = new Environment(env);
+            env.define("super", superclass);
+        }
 
         var functions = new HashMap<String, LoxFunction>();
         for (var method : stmt.methods()) {
@@ -318,7 +347,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             functions.put(method.name().lexeme, fn);
         }
 
-        var klass = new LoxClass(stmt.name().lexeme, functions);
+        if (stmt.superclass() != null) {
+            env = env.getParent();
+        }
+
+        var klass = new LoxClass(stmt.name().lexeme, superclass, functions);
         env.define(stmt.name().lexeme, klass);
         return null;
     }

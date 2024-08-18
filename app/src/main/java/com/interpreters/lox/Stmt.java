@@ -66,7 +66,7 @@ public sealed interface Stmt {
         }
     }
 
-    record Class(Token name, List<Function> methods) implements Stmt {
+    record Class(Token name, Expr.Variable superclass, List<Function> methods) implements Stmt {
         @Override
         public <R> R accept(Visitor<R> visitor) {
             return visitor.visit(this);

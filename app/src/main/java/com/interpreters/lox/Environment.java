@@ -56,6 +56,9 @@ public class Environment {
         ancestor(depth).assign(token, value);
     }
 
+    public Environment getParent() {
+        return parent;
+    }
 
     private Environment ancestor(int distance) {
         var environment = this;
@@ -63,5 +66,10 @@ public class Environment {
             environment = environment.parent;
         }
         return environment;
+    }
+
+    @Override
+    public String toString() {
+        return "Environment[vars=%s, parent=%s]".formatted(variableMappings, parent);
     }
 }

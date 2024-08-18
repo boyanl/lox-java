@@ -1,0 +1,28 @@
+
+class A {
+
+    prepare() {
+        print "Preparin' A";
+    }
+
+    cook() {
+        print "Cookin' A";
+    }
+}
+
+class B < A {
+    cook() {
+        super.cook();
+        print "Cookin' B";
+    }
+}
+
+class C < B {
+    cook() {
+        super.cook();
+        print "Cookin' C";
+    }
+}
+
+var c = C();
+c.cook();
